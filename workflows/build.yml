@@ -1,0 +1,43 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Accept Android SDK licenses
+        run: |
+          mkdir -p $HOME/.android
+          echo "### User-defined sources for Android Repository" > $HOME/.android/repositories.cfg
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Install Android SDK tools
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "platform-tools" || true
+
+      - name: Generate project structure
+        run: python3 build_aether.py --output .
+
+      - name: List generated files
+        run: find AetherAutomation -type f | head -20 || true
