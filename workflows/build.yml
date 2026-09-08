@@ -36,8 +36,19 @@ jobs:
             "build-tools;36.0.0" \
             "platform-tools" || true
 
-      - name: Generate project structure
-        run: python3 build_aether.py --output .
+      - name: Generate project and build APK
+        run: python3 build_aether.py --build --output .
 
-      - name: List generated files
-        run: find AetherAutomation -type f | head -20 || true
+      - name: Upload APK artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: aether-debug-apk
+          path: AetherAutomation/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-logs
+          path: AetherAutomation/app/build/outputs/
